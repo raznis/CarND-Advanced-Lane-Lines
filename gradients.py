@@ -35,11 +35,11 @@ def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
 # then computes the magnitude of the gradient
 # and applies a threshold
 def mag_thresh(img, sobel_kernel=3, mag_thresh=(0, 255)):
-    # Convert to grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    # Convert to grayscale not necessary (already single channel)
+    # gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     # Take the absolute value of the derivative or gradient
-    sobel_x = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
-    sobel_y = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
+    sobel_x = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
+    sobel_y = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
     # Calculate the gradient magnitude
     gradmag = np.sqrt(sobel_x ** 2 + sobel_y ** 2)
     # Scale to 8-bit (0 - 255) then convert to type = np.uint8
@@ -55,11 +55,11 @@ def mag_thresh(img, sobel_kernel=3, mag_thresh=(0, 255)):
 # then computes the direction of the gradient
 # and applies a threshold.
 def dir_threshold(img, sobel_kernel=3, thresh=(0, np.pi/2)):
-    # Grayscale
-    gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
+    # Convert to grayscale not necessary (already single channel)
+    # gray = cv2.cvtColor(img, cv2.COLOR_RGB2GRAY)
     # Calculate the x and y gradients
-    sobelx = cv2.Sobel(gray, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
-    sobely = cv2.Sobel(gray, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
+    sobelx = cv2.Sobel(img, cv2.CV_64F, 1, 0, ksize=sobel_kernel)
+    sobely = cv2.Sobel(img, cv2.CV_64F, 0, 1, ksize=sobel_kernel)
     # Take the absolute value of the gradient direction,
     # apply a threshold, and create a binary image result
     absgraddir = np.arctan2(np.absolute(sobely), np.absolute(sobelx))
@@ -75,6 +75,13 @@ def hls_select(img, thresh=(90, 255)):
     binary_output = np.zeros_like(s_channel)
     binary_output[(s_channel > thresh[0]) & (s_channel <= thresh[1])] = 1
     return binary_output
+
+
+def color_thresh(image, threshold=(0, 255)):
+    mask = np.zeros_like(image)
+    mask[(image > threshold[0]) & (image <= threshold[1])] = 1
+    return mask
+
 
 def filter_colors_hsv(img):
     """
@@ -129,45 +136,36 @@ def apply_gradient(image, ksize=7):
     return combined
 
 
-def apply_grad(image):
-    undistorted_image = np.copy(image)
 
-    r_channel = undistorted_image[:, :, 0]
-    g_channel = undistorted_image[:, :, 1]
-    b_channel = undistorted_image[:, :, 2]
 
-    # Convert to HLS colorspace
-    hls = cv2.cvtColor(undistorted_image, cv2.COLOR_RGB2HLS).astype(np.float)
-    h_channel = hls[:, :, 0]
-    l_channel = hls[:, :, 1]
+def get_edges(image, separate_channels=False):
+    """
+    Masks the image based on a composition of edge detectors: gradient value,
+    gradient magnitude, gradient direction and color.
+    Parameters
+    ----------
+    image               : Image to mask.
+    separate_channels   : Flag indicating if we need to put masks in different color channels.
+    Returns
+    -------
+    Image mask with 1s in activations and 0 in other pixels.
+    """
+    # Convert to HLS color space and separate required channel
+    hls = cv2.cvtColor(np.copy(image), cv2.COLOR_RGB2HLS).astype(np.float)
     s_channel = hls[:, :, 2]
+    # Get a combination of all gradient thresholding masks
+    gradient_x = abs_sobel_thresh(s_channel, orient='x', sobel_kernel=3, thresh=(20, 100))
+    gradient_y = abs_sobel_thresh(s_channel, orient='y', sobel_kernel=3, thresh=(20, 100))
+    magnitude = mag_thresh(s_channel, sobel_kernel=3, mag_thresh=(20, 100))
+    direction = dir_threshold(s_channel, sobel_kernel=3, thresh=(0.7, 1.3))
+    gradient_mask = np.zeros_like(s_channel)
+    gradient_mask[((gradient_x == 1) & (gradient_y == 1)) | ((magnitude == 1) & (direction == 1))] = 1
+    # Get a color thresholding mask
+    color_mask = color_thresh(s_channel, threshold=(170, 255))
 
-    # f, axes = plt.subplots(2, 3, figsize=(24, 9))
-    # f.tight_layout()
-    # axes[0, 0].imshow(h_channel)
-    # axes[0, 0].set_title('h_channel', fontsize=50)
-    # axes[0, 1].imshow(l_channel)
-    # axes[0, 1].set_title('l_channel', fontsize=50)
-    # axes[0, 2].imshow(s_channel)
-    # axes[0, 2].set_title('s_channel', fontsize=50)
-    # axes[1, 0].imshow(r_channel)
-    # axes[1, 0].set_title('r_channel', fontsize=50)
-    # axes[1, 1].imshow(g_channel)
-    # axes[1, 1].set_title('g_channel', fontsize=50)
-    # axes[1, 2].imshow(b_channel)
-    # axes[1, 2].set_title('b_channel', fontsize=50)
-    # plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-    #
-    # plt.show()
-    sobelx_s_1 = abs_sobel_thresh(s_channel, thresh=(5,100))
-
-    sobelx_s_2 = abs_sobel_thresh(s_channel, thresh=(125, 255))
-
-    f, (ax1,ax2) = plt.subplots(1, 2, figsize=(24, 9))
-    f.tight_layout()
-    ax1.imshow(sobelx_s_1)
-    ax1.set_title('sobelx_s_1', fontsize=50)
-    ax2.imshow(sobelx_s_2)
-    ax2.set_title('sobelx_s_2', fontsize=50)
-    plt.show()
-
+    if separate_channels:
+        return np.dstack((np.zeros_like(s_channel), gradient_mask, color_mask))
+    else:
+        mask = np.zeros_like(gradient_mask)
+        mask[(gradient_mask == 1) | (color_mask == 1)] = 1
+    return mask
