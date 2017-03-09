@@ -2,7 +2,9 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-
+IMAGE_WIDTH = 1280
+YM_PER_PIX = 30 / 720  # meters per pixel in y dimension
+XM_PER_PIX = 3.7 / 700  # meters per pixel in x dimension
 
 def first_time_lane_find(image):
     # Take a histogram of the bottom half of the image
@@ -80,12 +82,12 @@ def first_time_lane_find(image):
     # plt.show()
     out_img[nonzeroy[left_lane_inds], nonzerox[left_lane_inds]] = [255, 0, 0]
     out_img[nonzeroy[right_lane_inds], nonzerox[right_lane_inds]] = [0, 0, 255]
-    plt.imshow(out_img)
-    plt.plot(left_fitx, ploty, color='yellow')
-    plt.plot(right_fitx, ploty, color='yellow')
-    plt.xlim(0, 1280)
-    plt.ylim(720, 0)
-    plt.show()
+    # plt.imshow(out_img)
+    # plt.plot(left_fitx, ploty, color='yellow')
+    # plt.plot(right_fitx, ploty, color='yellow')
+    # plt.xlim(0, 1280)
+    # plt.ylim(720, 0)
+    # plt.show()
 
     return left_fit, right_fit
 
@@ -133,11 +135,42 @@ def second_time_lane_find(warped, left_fit, right_fit):
     cv2.fillPoly(window_img, np.int_([left_line_pts]), (0, 255, 0))
     cv2.fillPoly(window_img, np.int_([right_line_pts]), (0, 255, 0))
     result = cv2.addWeighted(out_img, 1, window_img, 0.3, 0)
-    plt.imshow(result)
-    plt.plot(left_fitx, ploty, color='yellow')
-    plt.plot(right_fitx, ploty, color='yellow')
-    plt.xlim(0, 1280)
-    plt.ylim(720, 0)
-    plt.show()
+    # plt.imshow(result)
+    # plt.plot(left_fitx, ploty, color='yellow')
+    # plt.plot(right_fitx, ploty, color='yellow')
+    # plt.xlim(0, 1280)
+    # plt.ylim(720, 0)
+    # plt.show()
 
     return left_fit, right_fit
+
+
+def compute_radius(left_fit, right_fit):
+    ploty = np.linspace(0, 719, num=720)  # to cover same y-range as image
+    y_eval = np.max(ploty)
+    leftx = np.array([left_fit[0] * y ** 2 + left_fit[1] * y + left_fit[2] for y in ploty])
+    rightx = np.array([right_fit[0] * y ** 2 + right_fit[1] * y + right_fit[2] for y in ploty])
+    # leftx = leftx[::-1]  # Reverse to match top-to-bottom in y
+    # rightx = rightx[::-1]  # Reverse to match top-to-bottom in y
+    # Define conversions in x and y from pixels space to meters
+    # Fit new polynomials to x,y in world space
+    left_fit_cr = np.polyfit(ploty * YM_PER_PIX, leftx * XM_PER_PIX, 2)
+    right_fit_cr = np.polyfit(ploty * YM_PER_PIX, rightx * XM_PER_PIX, 2)
+    mark_size = 3
+    # plt.plot(leftx, ploty, 'o', color='red', markersize=mark_size)
+    # plt.plot(rightx, ploty, 'o', color='blue', markersize=mark_size)
+    # plt.xlim(0, 1280)
+    # plt.ylim(0, 720)
+    # plt.gca().invert_yaxis()  # to visualize as we do the images
+    # plt.show()
+    # Calculate the new radii of curvature
+    left_curverad = ((1 + (2 * left_fit_cr[0] * y_eval * YM_PER_PIX + left_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
+        2 * left_fit_cr[0])
+    right_curverad = ((1 + (2 * right_fit_cr[0] * y_eval * YM_PER_PIX + right_fit_cr[1]) ** 2) ** 1.5) / np.absolute(
+        2 * right_fit_cr[0])
+
+    closest_left_x = leftx[-1]
+    closest_right_x = rightx[-1]
+    car_x = closest_left_x + (closest_right_x - closest_left_x) / 2
+    distance_from_center = ((IMAGE_WIDTH / 2) - car_x) * XM_PER_PIX
+    return left_curverad, right_curverad, distance_from_center

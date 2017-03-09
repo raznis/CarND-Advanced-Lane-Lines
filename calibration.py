@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.image as mpimg
 
 
-class Calibration():
+class Calibration:
     def __init__(self):
         self._mtx = None
         self._dist = None

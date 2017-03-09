@@ -4,8 +4,9 @@ import calibration
 import lane_finder
 import perspective
 import gradients
-import numpy as np
+import drawer
 
+import numpy as np
 
 
 
@@ -44,16 +45,9 @@ if __name__=="__main__":
 
     left_fit, right_fit = lane_finder.first_time_lane_find(warped)
 
-    y_eval = 719
-    left_curverad = ((1 + (2 * left_fit[0] * y_eval + left_fit[1]) ** 2) ** 1.5) / np.absolute(2 * left_fit[0])
-    right_curverad = ((1 + (2 * right_fit[0] * y_eval + right_fit[1]) ** 2) ** 1.5) / np.absolute(2 * right_fit[0])
-    print(left_curverad, right_curverad)
-
-
-
     # SECOND IMAGE:
     test_image = cv2.imread("test_images/test1.jpg")
-    # test_image = cv2.cvtColor(test_image,cv2.COLOR_BGR2RGB)
+    test_image = cv2.cvtColor(test_image,cv2.COLOR_BGR2RGB)
     undistorted = calibration.undistort(test_image)
     cv2.imwrite("output_images/test1_undistorted.jpg", undistorted)
     mask = gradients.get_edges(undistorted, separate_channels=False)
@@ -64,10 +58,16 @@ if __name__=="__main__":
 
     left_fit, right_fit = lane_finder.second_time_lane_find(warped, left_fit, right_fit)
 
-    y_eval = 719
-    left_curverad = ((1 + (2 * left_fit[0] * y_eval + left_fit[1]) ** 2) ** 1.5) / np.absolute(2 * left_fit[0])
-    right_curverad = ((1 + (2 * right_fit[0] * y_eval + right_fit[1]) ** 2) ** 1.5) / np.absolute(2 * right_fit[0])
-    print(left_curverad, right_curverad)
+    left_curverad, right_curverad = lane_finder.compute_radius(left_fit, right_fit)
+
+    # Now our radius of curvature is in meters
+    print(left_curverad, 'm', right_curverad, 'm')
+
+    result = drawer.draw(undistorted, left_fit, right_fit, perspective, int((left_curverad +right_curverad) / 2))
+
+    plt.imshow(result)
+    plt.show()
+
 
 
 
@@ -86,4 +86,5 @@ if __name__=="__main__":
     # plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
     #
     # plt.show()
+
 
