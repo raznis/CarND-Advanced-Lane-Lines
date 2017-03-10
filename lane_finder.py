@@ -89,7 +89,7 @@ def first_time_lane_find(image):
     # plt.ylim(720, 0)
     # plt.show()
 
-    return left_fit, right_fit
+    return left_fit, right_fit, histogram
 
 
 def second_time_lane_find(warped, left_fit, right_fit):

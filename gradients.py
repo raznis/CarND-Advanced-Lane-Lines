@@ -104,8 +104,8 @@ def apply_gradient(image, ksize=7):
     # Apply each of the thresholding functions
     gradx = abs_sobel_thresh(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), orient='x', sobel_kernel=ksize, thresh=(5, 100))
     grady = abs_sobel_thresh(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), orient='y', sobel_kernel=ksize, thresh=(5, 100))
-    mag_binary = mag_thresh(image, sobel_kernel=ksize, mag_thresh=(50, 150))
-    dir_binary = dir_threshold(image, sobel_kernel=ksize, thresh=(0.7, 1.3))
+    mag_binary = mag_thresh(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), sobel_kernel=ksize, mag_thresh=(50, 150))
+    dir_binary = dir_threshold(cv2.cvtColor(image, cv2.COLOR_BGR2GRAY), sobel_kernel=ksize, thresh=(0.7, 1.3))
 
     # Convert to HLS colorspace
     hls = cv2.cvtColor(image, cv2.COLOR_BGR2HLS).astype(np.float)
@@ -113,24 +113,25 @@ def apply_gradient(image, ksize=7):
     l_channel = hls[:, :, 1]
     s_channel = hls[:, :, 2]
 
-    gradx_s_channel = abs_sobel_thresh(image, orient='x', sobel_kernel=7, thresh=(50, 255))
+    gradx_s_channel = abs_sobel_thresh(s_channel, orient='x', sobel_kernel=7, thresh=(50, 255))
 
     combined = np.zeros_like(gradx)
-    combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
+    # combined[((gradx == 1) & (grady == 1)) | ((mag_binary == 1) & (dir_binary == 1))] = 1
+    combined[((gradx == 1) & (grady == 1) & (gradx_s_channel == 1)) | ((dir_binary == 1) & (gradx_s_channel == 1))] = 1
 
-    f, axes = plt.subplots(2, 2, figsize=(24, 9))
-    f.tight_layout()
-    axes[0, 0].imshow(image)
-    axes[0, 0].set_title('image', fontsize=50)
-    axes[0, 1].imshow(l_channel)
-    axes[0, 1].set_title('l_channel', fontsize=50)
-    axes[1, 0].imshow(gradx_s_channel)
-    axes[1, 0].set_title('gradx_s_channel', fontsize=50)
-    axes[1, 1].imshow(s_channel)
-    axes[1, 1].set_title('s_channel', fontsize=50)
-    plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
-
-    plt.show()
+    # f, axes = plt.subplots(2, 2, figsize=(24, 9))
+    # f.tight_layout()
+    # axes[0, 0].imshow(image)
+    # axes[0, 0].set_title('image', fontsize=50)
+    # axes[0, 1].imshow(l_channel)
+    # axes[0, 1].set_title('l_channel', fontsize=50)
+    # axes[1, 0].imshow(gradx_s_channel)
+    # axes[1, 0].set_title('gradx_s_channel', fontsize=50)
+    # axes[1, 1].imshow(s_channel)
+    # axes[1, 1].set_title('s_channel', fontsize=50)
+    # plt.subplots_adjust(left=0., right=1, top=0.9, bottom=0.)
+    #
+    # plt.show()
 
 
     return combined
