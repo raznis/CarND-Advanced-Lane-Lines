@@ -27,24 +27,24 @@ class Perspective:
             #      [280, 30]]  # top right
             # )
 
-            src = np.float32([
-                [277, 670],
-                [581, 460],
-                [701, 460],
-                [1028, 670]
-            ])
-            dst = np.float32([
-                [200, 720],
-                [200, 0],
-                [980, 0],
-                [980, 720]
-            ])
+            # src = np.float32([
+            #     [277, 670],
+            #     [581, 460],
+            #     [701, 460],
+            #     [1028, 670]
+            # ])
+            # dst = np.float32([
+            #     [200, 720],
+            #     [200, 0],
+            #     [980, 0],
+            #     [980, 720]
+            # ])
 
-            # (h, w) = (img.shape[0], img.shape[1])
-            # # Define source points
-            # src = np.float32([[w // 2 - 76, h * .625], [w // 2 + 76, h * .625], [-100, h], [w + 100, h]])
-            # # Define corresponding destination points
-            # dst = np.float32([[100, 0], [w - 100, 0], [100, h], [w - 100, h]])
+            (h, w) = (img.shape[0], img.shape[1])
+            # Define source points
+            src = np.float32([[w // 2 - 76, h * .625], [w // 2 + 76, h * .625], [-100, h], [w + 100, h]])
+            # Define corresponding destination points
+            dst = np.float32([[100, 0], [w - 100, 0], [100, h], [w - 100, h]])
 
             self._M = cv2.getPerspectiveTransform(src, dst)
 

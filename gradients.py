@@ -7,6 +7,30 @@ import matplotlib.pyplot as plt
 # Note: calling your function with orient='x', thresh_min=5, thresh_max=100
 # should produce output like the example image shown above this quiz.
 
+def region_of_interest(img, vertices):
+    """
+    Applies an image mask.
+
+    Only keeps the region of the image defined by the polygon
+    formed from `vertices`. The rest of the image is set to black.
+    """
+    # defining a blank mask to start with
+    mask = np.zeros_like(img)
+
+    # defining a 3 channel or 1 channel color to fill the mask with depending on the input image
+    if len(img.shape) > 2:
+        channel_count = img.shape[2]  # i.e. 3 or 4 depending on your image
+        ignore_mask_color = (255,) * channel_count
+    else:
+        ignore_mask_color = 255
+
+    # filling pixels inside the polygon defined by "vertices" with the fill color
+    cv2.fillPoly(mask, vertices, ignore_mask_color)
+
+    # returning the image only where mask pixels are nonzero
+    masked_image = cv2.bitwise_and(img, mask)
+    return masked_image
+
 
 def abs_sobel_thresh(img, orient='x', sobel_kernel=3, thresh=(0, 255)):
     # Apply the following steps to img
@@ -88,7 +112,7 @@ def filter_colors_hsv(img):
     Convert image to HSV color space and suppress any colors
     outside of the defined color ranges
     """
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
+    img = cv2.cvtColor(img, cv2.COLOR_RGB2HSV)
     yellow_dark = np.array([15, 127, 127], dtype=np.uint8)
     yellow_light = np.array([25, 255, 255], dtype=np.uint8)
     yellow_range = cv2.inRange(img, yellow_dark, yellow_light)
@@ -98,7 +122,8 @@ def filter_colors_hsv(img):
     white_range = cv2.inRange(img, white_dark, white_light)
     yellows_or_whites = yellow_range | white_range
     img = cv2.bitwise_and(img, img, mask=yellows_or_whites)
-    return img
+
+    return cv2.cvtColor(img, cv2.COLOR_HSV2RGB)
 
 def apply_gradient(image, ksize=7):
     # Apply each of the thresholding functions
@@ -151,6 +176,7 @@ def get_edges(image, separate_channels=False):
     -------
     Image mask with 1s in activations and 0 in other pixels.
     """
+
     # Convert to HLS color space and separate required channel
     hls = cv2.cvtColor(np.copy(image), cv2.COLOR_RGB2HLS).astype(np.float)
     s_channel = hls[:, :, 2]
