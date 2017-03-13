@@ -22,8 +22,8 @@ def compose_diagScreen(curverad=0, offset=0, mainDiagScreen=None,
     # using cv2 for drawing text in diagnostic pipeline.
     font = cv2.FONT_HERSHEY_COMPLEX
     middlepanel = np.zeros((120, 1280, 3), dtype=np.uint8)
-    cv2.putText(middlepanel, 'Estimated lane curvature: {}'.format(curverad), (30, 60), font, 1, (255, 0, 0), 2)
-    cv2.putText(middlepanel, 'Estimated Meters right of center: {}'.format(offset), (30, 90), font, 1, (255, 0, 0),
+    cv2.putText(middlepanel, 'Estimated lane curve radius: {0:.1f}'.format(curverad), (30, 60), font, 1, (255, 0, 0), 2)
+    cv2.putText(middlepanel, 'Estimated Meters from lane center: {0:.1f}'.format(offset), (30, 90), font, 1, (255, 0, 0),
                 2)
 
     # assemble the screen example

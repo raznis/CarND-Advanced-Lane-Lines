@@ -20,8 +20,8 @@ def draw(img, left_fit, right_fit, perspective, curve_radius, distance_from_cent
     newwarp = perspective.unwarp(color_warp)
 
     font = cv2.FONT_HERSHEY_SIMPLEX
-    cv2.putText(img, 'Curve Radius: ' + str(curve_radius), (300, 100), font, 2, (255, 0, 0), 2, cv2.LINE_AA)
-    cv2.putText(img, 'Distance From Center: ' + "{:2.2f}".format(distance_from_center), (250, 200), font, 2, (255, 0, 0), 2, cv2.LINE_AA)
+    # cv2.putText(img, 'Curve Radius: ' + str(curve_radius), (300, 100), font, 2, (255, 0, 0), 2, cv2.LINE_AA)
+    # cv2.putText(img, 'Distance From Center: ' + "{:2.2f}".format(distance_from_center), (250, 200), font, 2, (255, 0, 0), 2, cv2.LINE_AA)
 
     result = cv2.addWeighted(img, 1, newwarp, 0.3, 0)
 
