@@ -29,7 +29,7 @@ class pipeline:
         # video = 'challenge_video'
         video = 'project_video'
         white_output = '{}_done_2.mp4'.format(video)
-        clip1 = VideoFileClip('{}.mp4'.format(video))#.subclip(35, 44)
+        clip1 = VideoFileClip('{}.mp4'.format(video))#.subclip(31, 44)
         white_clip = clip1.fl_image(self.process_image)  # NOTE: this function expects color images!!
         white_clip.write_videofile(white_output, audio=False)
         return self.skipped_frames, self.total_frames
@@ -41,11 +41,14 @@ class pipeline:
         warped = np.uint8(self.perspective.warp(mask))
         # if self.left_fit is None or self.right_fit is None:
             #need to compute from scratch
-        try:
+        # try:
+        if len(self.left_fits) < 20:
             curr_left_fit, curr_right_fit, histogram = lane_finder.first_time_lane_find(warped)
-        except TypeError:
-            curr_left_fit, curr_right_fit = self.left_fits[-1], self.right_fits[-1]
-            self.skipped_frames += 1
+        else:
+            curr_left_fit, curr_right_fit = lane_finder.second_time_lane_find(warped, self.left_fits[-1], self.right_fits[-1])
+        # except TypeError:
+        #     curr_left_fit, curr_right_fit = self.left_fits[-1], self.right_fits[-1]
+        #     self.skipped_frames += 1
 
         left_curverad, right_curverad, distance_from_center = lane_finder.compute_radius(curr_left_fit, curr_right_fit)
 
@@ -64,14 +67,18 @@ class pipeline:
         else:
             self.radius = self.radius * 0.95 + self.radius * 1.5 * 0.05
 
-        smoothing_param = 20
-        if len(self.left_fits) < smoothing_param:
+        smoothing_param = 13    # 13
+        history_weight = 1.0    # 1.0
+        if len(self.left_fits) <= smoothing_param:
             left_fit = self.left_fits[-1]
             right_fit = self.right_fits[-1]
         else:
-            left_fit = [np.average(x) for x in zip(*self.left_fits[-smoothing_param:-1])]
-            right_fit = [np.average(x) for x in zip(*self.right_fits[-smoothing_param:-1])]
-
+            left_fit_window = self.left_fits[-smoothing_param:-1]   #make -2 to exclude last fit
+            left_fit_window_sorted = sorted(left_fit_window, key=lambda x: x[0])
+            right_fit_window = self.right_fits[-smoothing_param:-1] #make -2 to exclude last fit
+            right_fit_window_sorted = sorted(right_fit_window, key=lambda x: x[0])
+            left_fit = np.average(left_fit_window_sorted[int(smoothing_param*0.25):int(smoothing_param*0.75)+1],axis=0) * history_weight + self.left_fits[-1] * (1-history_weight)
+            right_fit = np.average(right_fit_window_sorted[int(smoothing_param*0.25):int(smoothing_param*0.75)+1],axis=0) * history_weight + self.right_fits[-1] * (1-history_weight)
         result = drawer.draw(undistorted, left_fit, right_fit, self.perspective, self.radius, distance_from_center)
         return visualization.compose_diagScreen(self.radius, distance_from_center, result, undistorted, filtered, mask, warped)
 
