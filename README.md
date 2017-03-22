@@ -1,4 +1,5 @@
-##Advanced Lane Finding Project
+Advanced Lane Finding Project
+---
 
 The goals / steps of this project are the following:
 
@@ -109,7 +110,7 @@ In addition, in order to debug all the stages of the pipeline, I implemented a v
 
 ---
 
-###Pipeline (video)
+Pipeline (video)
 ---
 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
