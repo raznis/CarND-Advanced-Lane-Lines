@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 
+
 def normalized(img):
     return np.uint8(255 * img / np.max(np.absolute(img)))
 

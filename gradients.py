@@ -162,21 +162,7 @@ def apply_gradient(image, ksize=7):
     return combined
 
 
-
-
 def get_edges(image, separate_channels=False):
-    """
-    Masks the image based on a composition of edge detectors: gradient value,
-    gradient magnitude, gradient direction and color.
-    Parameters
-    ----------
-    image               : Image to mask.
-    separate_channels   : Flag indicating if we need to put masks in different color channels.
-    Returns
-    -------
-    Image mask with 1s in activations and 0 in other pixels.
-    """
-
     # Convert to HLS color space and separate required channel
     hls = cv2.cvtColor(np.copy(image), cv2.COLOR_RGB2HLS).astype(np.float)
     s_channel = hls[:, :, 2]

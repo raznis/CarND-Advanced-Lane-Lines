@@ -13,32 +13,6 @@ class Perspective:
     def warp(self, img):
         if self._M is None:
             print("Computing perspective transform matrix...")
-            # src = np.float32(
-            #     [[233, 700],    # bottom left
-            #      [1070, 700],   # bottom right
-            #      [702, 461],    # top right       711, 486
-            #      [580, 461]]    # top left         570, 486
-            # )
-            #
-            # dst = np.float32(
-            #     [[280, 690],  # bottom left
-            #      [1000, 690],  # bottom right
-            #      [1000, 30],  # top right
-            #      [280, 30]]  # top right
-            # )
-
-            # src = np.float32([
-            #     [277, 670],
-            #     [581, 460],
-            #     [701, 460],
-            #     [1028, 670]
-            # ])
-            # dst = np.float32([
-            #     [200, 720],
-            #     [200, 0],
-            #     [980, 0],
-            #     [980, 720]
-            # ])
 
             (h, w) = (img.shape[0], img.shape[1])
             # Define source points
@@ -53,7 +27,7 @@ class Perspective:
             print("Done perspective transform matrix.")
 
         img_size = (img.shape[1], img.shape[0])
-        return cv2.warpPerspective(img,self._M, img_size, flags=cv2.INTER_LINEAR)
+        return cv2.warpPerspective(img, self._M, img_size, flags=cv2.INTER_LINEAR)
 
     def unwarp(self, img):
         img_size = (img.shape[1], img.shape[0])

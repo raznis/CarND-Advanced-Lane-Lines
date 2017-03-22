@@ -1,5 +1,4 @@
 import cv2
-import matplotlib.pyplot as plt
 from moviepy.video.io.VideoFileClip import VideoFileClip
 
 import calibration
@@ -7,9 +6,10 @@ import lane_finder
 import perspective
 import gradients
 import drawer
-import visualization
-
+from visualization import compose_diagScreen
+from visualization import to_RGB
 import numpy as np
+
 
 class pipeline:
     def __init__(self):
@@ -23,13 +23,12 @@ class pipeline:
         self.total_frames = 0
         self.radius = -1.0
 
-
     def process_video(self):
         # video = 'harder_challenge_video'
         # video = 'challenge_video'
         video = 'project_video'
-        white_output = '{}_done_2.mp4'.format(video)
-        clip1 = VideoFileClip('{}.mp4'.format(video))#.subclip(31, 44)
+        white_output = '{}_test_1.mp4'.format(video)
+        clip1 = VideoFileClip('{}.mp4'.format(video)).subclip(31, 44)
         white_clip = clip1.fl_image(self.process_image)  # NOTE: this function expects color images!!
         white_clip.write_videofile(white_output, audio=False)
         return self.skipped_frames, self.total_frames
@@ -81,11 +80,23 @@ class pipeline:
             right_fit = np.average(right_fit_window_sorted[int(smoothing_param*0.25):int(smoothing_param*0.75)+1],axis=0) * history_weight + self.right_fits[-1] * (1-history_weight)
 
         result = drawer.draw(undistorted, left_fit, right_fit, self.perspective, self.radius, distance_from_center)
-        return visualization.compose_diagScreen(self.radius, distance_from_center, result, undistorted, filtered, mask, warped)
+        visualization = compose_diagScreen(self.radius, distance_from_center, result, undistorted, filtered, mask, warped)
+
+        if self.total_frames == 4:
+            cv2.imwrite("output_images/example_undistorted.jpg", cv2.cvtColor(undistorted, cv2.COLOR_RGB2BGR))
+            cv2.imwrite("output_images/example_filtered.jpg", cv2.cvtColor(filtered, cv2.COLOR_RGB2BGR))
+            cv2.imwrite("output_images/example_mask.jpg", to_RGB(mask))
+            cv2.imwrite("output_images/example_warped.jpg", to_RGB(warped))
+            cv2.imwrite("output_images/example_result.jpg", cv2.cvtColor(result, cv2.COLOR_RGB2BGR))
+            cv2.imwrite("output_images/example_visualization.jpg", cv2.cvtColor(visualization, cv2.COLOR_RGB2BGR))
+
+        return visualization
+
 
 
 if __name__ == "__main__":
     pipe = pipeline()
+    #process the video
     skipped, total = pipe.process_video()
     print("skipped frames: " + str(skipped) + " out of " + str(total))
 

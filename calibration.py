@@ -51,6 +51,10 @@ class Calibration:
         self._mtx = mtx
         self._dist = dist
 
+        # saving example image
+        dst = self.undistort(cv2.imread("camera_cal/calibration2.jpg"))
+        cv2.imwrite("output_images/calibration2_undistorted.jpg", dst)
+
         print("Done calibration.")
 
     def undistort(self, img):
