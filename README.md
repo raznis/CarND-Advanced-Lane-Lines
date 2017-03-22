@@ -1,4 +1,4 @@
-**Advanced Lane Finding Project**
+##Advanced Lane Finding Project
 
 The goals / steps of this project are the following:
 
@@ -25,18 +25,10 @@ The goals / steps of this project are the following:
 [image9]: ./output_images/example_visualization.jpg "Debugging all stages"
 [video1]: ./project_video_done.mp4 "Video"
 
-## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
-###Here I will consider the rubric points individually and describe how I addressed each point in my implementation.  
 
+Camera Calibration
 ---
-###Writeup / README
 
-####1. Provide a Writeup / README that includes all the rubric points and how you addressed each one.  You can submit your writeup as markdown or pdf.  [Here](https://github.com/udacity/CarND-Advanced-Lane-Lines/blob/master/writeup_template.md) is a template writeup for this project you can use as a guide and a starting point.  
-
-You're reading it!
-###Camera Calibration
-
-####1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
 
 The code for this step is contained in the calibration class  (`calibration.py`).  
 
@@ -48,21 +40,24 @@ I then used the output `objpoints` and `imgpoints` to compute the camera calibra
 
 ![alt text][image1]
 
-###Pipeline (single images)
+Pipeline (single images)
+---
+1. Provide an example of a distortion-corrected image.
 
-####1. Provide an example of a distortion-corrected image.
 To demonstrate this step, here is an example of a road image after distortion correction:
 ![alt text][image2]
-####2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
+
+2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
+
 I used a combination of color and gradient thresholds to generate a binary image (thresholding steps at lines 110 through 126, and at lines 165 to 184 in `gradients.py`). I first applied a color mask for yellow and white in the HSV color space, and then then applied sobel, magnitude and direction thresholding on the S channel. Pixels where turned on if they passed one of the two masks. Here's an example of my output for this step. First, color thresholding:
 
 ![alt text][image3]
 
-And then thefinal binary masking:
+And then the final binary masking:
 
 ![alt text][image4]
 
-####3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
+3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
 The code for my perspective transform includes a function called `warp()`, which appears in lines 13 through 30 in the file `perspective.py`.  The `warp()` function takes as inputs an image (`img`). I chose the hardcode the source and destination points in the following manner:
 
@@ -86,7 +81,7 @@ I verified that my perspective transform was working as expected by checking mul
 
 ![alt text][image5]
 
-####4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
+4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
 Code for this part can be found in `lane_finder.py`, lines 9 to 145. First, given the warped binary image, I computed a histogram of "lit" pixels w.r.t. the x-axis. The two peaks of the histogram correspond to the two lane locations. Then, using sliding windows, I found the locations of the most lit pixels. These rectangles provided the scope of the points to be used when computing the 2nd order polynomial fit of the lanes. An example is below:
 
@@ -99,11 +94,11 @@ After we have found the lanes lines for the first time, we can use this informat
 In order to smooth out outlier frames, the output for each frame represented the average of the last 13 frames, removing the top and bottom 25%, w.r.t. the coefficient of x^2 of the polyinomial fit of the lane.
 
 
-####5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
+5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
 I did this in lines 153 through 181 in my code in `lane_finder.py`
 
-####6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
+6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
 I implemented this step in lines 5 through 28 in my code in `drawer.py` in the function `draw()`.  Here is an example of my result on a test image:
 
@@ -111,19 +106,20 @@ I implemented this step in lines 5 through 28 in my code in `drawer.py` in the f
 
 In addition, in order to debug all the stages of the pipeline, I implemented a visualizer to display all the stages in a single image. I also utilized this in computing the output video. Here's an example of this:
 ![alt text][image9]
+
 ---
 
 ###Pipeline (video)
-
-####1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
+---
+1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
 Here's a [link to my video result](./project_video_done.mp4)
 
 ---
 
-###Discussion
-
-####1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
+Discussion
+---
+1. Briefly discuss any problems / issues you faced in your implementation of this project.  Where will your pipeline likely fail?  What could you do to make it more robust?
 
 The first thing I noticed is that this (computer vision) approach requires a lot of fine tuning of the parameters. What appears to work well on some test images, can break down on very similar images, as were included in the video. Looking at potential areas of imprevement, I believe further tuning of the thresholding would create a more robust pipeline. I used masking of yellow and white in my pipeline, and this might fail when lanes have different colors, or when lighting conditions are completely different.
 
